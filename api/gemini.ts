@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 
 // As definições de schema agora vivem no backend, onde são usadas.
@@ -92,14 +93,22 @@ export default async function handler(request: Request): Promise<Response> {
             modelResponse = await ai.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: prompt,
-                config: { responseMimeType: "application/json", responseSchema: perfumeDetailsSchema },
+                config: { 
+                    responseMimeType: "application/json", 
+                    responseSchema: perfumeDetailsSchema,
+                    thinkingConfig: { thinkingBudget: 0 } 
+                },
             });
         } else if (searchType === 'BY_NOTES') {
             const prompt = `Você é um especialista em perfumes. Com base nas seguintes características ou notas: '${query}', sugira até 6 perfumes que correspondam a este perfil. Para cada perfume, forneça o nome, a marca e uma breve descrição da sua fragrância. A resposta deve ser em formato JSON seguindo o schema.`;
             modelResponse = await ai.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: prompt,
-                config: { responseMimeType: "application/json", responseSchema: perfumeByNotesSchema },
+                config: { 
+                    responseMimeType: "application/json", 
+                    responseSchema: perfumeByNotesSchema,
+                    thinkingConfig: { thinkingBudget: 0 }
+                },
             });
         } else {
             return new Response(JSON.stringify({ error: 'Tipo de busca inválido.' }), {
@@ -108,8 +117,8 @@ export default async function handler(request: Request): Promise<Response> {
             });
         }
         
-        const result = JSON.parse(modelResponse.text.trim());
-        return new Response(JSON.stringify(result), {
+        const jsonText = modelResponse.text.trim();
+        return new Response(jsonText, {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
